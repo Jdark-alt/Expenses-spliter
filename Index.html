@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Trip Expense Splitter</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+        .icon { display: inline-block; width: 1em; height: 1em; stroke-width: 0; stroke: currentColor; fill: currentColor; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Icon components
+        const Users = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+        );
+
+        const DollarSign = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+        );
+
+        const Calculator = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="4" y="2" width="16" height="20" rx="2"/>
+                <line x1="8" y1="6" x2="16" y2="6"/>
+                <line x1="8" y1="10" x2="16" y2="10"/>
+                <line x1="8" y1="14" x2="16" y2="14"/>
+                <line x1="8" y1="18" x2="16" y2="18"/>
+            </svg>
+        );
+
+        const RotateCcw = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+            </svg>
+        );
+
+        const Plus = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        );
+
+        const Trash2 = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3,6 5,6 21,6"/>
+                <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+        );
+
+        const ArrowRight = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12,5 19,12 12,19"/>
+            </svg>
+        );
+
+        const ExpenseSplitterApp = () => {
+            const [people, setPeople] = useState(() => 
+                Array.from({ length: 12 }, (_, i) => ({
+                    id: i + 1,
+                    name: `Person ${i + 1}`,
+                    expenses: []
+                }))
+            );
+
+            const [settlements, setSettlements] = useState([]);
+            const [showSettlements, setShowSettlements] = useState(false);
+
+            const addExpense = (personId, description, amount) => {
+                if (!description.trim() || !amount || amount <= 0) return;
+                
+                setPeople(prevPeople => 
+                    prevPeople.map(person => 
+                        person.id === personId 
+                            ? { 
+                                ...person, 
+                                expenses: [...person.expenses, { 
+                                    id: Date.now(), 
+                                    description: description.trim(), 
+                                    amount: parseFloat(amount) 
+                                }] 
+                            }
+                            : person
+                    )
+                );
+            };
+
+            const removeExpense = (personId, expenseId) => {
+                setPeople(prevPeople => 
+                    prevPeople.map(person => 
+                        person.id === personId 
+                            ? { 
+                                ...person, 
+                                expenses: person.expenses.filter(expense => expense.id !== expenseId) 
+                            }
+                            : person
+                    )
+                );
+            };
+
+            const updatePersonName = (personId, newName) => {
+                setPeople(prevPeople => 
+                    prevPeople.map(person => 
+                        person.id === personId ? { ...person, name: newName.trim() || `Person ${personId}` } : person
+                    )
+                );
+            };
+
+            const calculateTotalExpenses = () => {
+                return people.reduce((total, person) => {
+                    return total + person.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+                }, 0);
+            };
+
+            const calculatePersonTotal = (person) => {
+                return person.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            };
+
+            const calculateSettlements = () => {
+                const totalExpenses = calculateTotalExpenses();
+                const perPersonShare = totalExpenses / 12;
+                
+                const balances = people.map(person => ({
+                    ...person,
+                    totalPaid: calculatePersonTotal(person),
+                    balance: calculatePersonTotal(person) - perPersonShare
+                }));
+
+                const creditors = balances.filter(person => person.balance > 0.01).sort((a, b) => b.balance - a.balance);
+                const debtors = balances.filter(person => person.balance < -0.01).sort((a, b) => a.balance - b.balance);
+                
+                const settlements = [];
+                let i = 0, j = 0;
+                
+                while (i < creditors.length && j < debtors.length) {
+                    const creditor = creditors[i];
+                    const debtor = debtors[j];
+                    
+                    const amount = Math.min(creditor.balance, -debtor.balance);
+                    
+                    if (amount > 0.01) {
+                        settlements.push({
+                            from: debtor.name,
+                            to: creditor.name,
+                            amount: amount
+                        });
+                        
+                        creditor.balance -= amount;
+                        debtor.balance += amount;
+                    }
+                    
+                    if (creditor.balance < 0.01) i++;
+                    if (debtor.balance > -0.01) j++;
+                }
+                
+                return { settlements, perPersonShare, totalExpenses, balances };
+            };
+
+            const handleCalculate = () => {
+                const result = calculateSettlements();
+                setSettlements(result.settlements);
+                setShowSettlements(true);
+            };
+
+            const resetAll = () => {
+                if (window.confirm('Are you sure you want to reset all expenses? This cannot be undone.')) {
+                    setPeople(Array.from({ length: 12 }, (_, i) => ({
+                        id: i + 1,
+                        name: `Person ${i + 1}`,
+                        expenses: []
+                    })));
+                    setSettlements([]);
+                    setShowSettlements(false);
+                }
+            };
+
+            const { perPersonShare, totalExpenses, balances } = calculateSettlements();
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center space-x-3">
+                                    <div className="bg-blue-500 p-3 rounded-full">
+                                        <Users className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-gray-800">Group Trip Expense Splitter</h1>
+                                        <p className="text-gray-600">Manage and split expenses fairly among 12 people</p>
+                                    </div>
+                                </div>
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={handleCalculate}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                                    >
+                                        <Calculator className="w-4 h-4" />
+                                        <span>Calculate Split</span>
+                                    </button>
+                                    <button
+                                        onClick={resetAll}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                                    >
+                                        <RotateCcw className="w-4 h-4" />
+                                        <span>Reset All</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                <div className="bg-blue-50 p-4 rounded-lg">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                        <DollarSign className="w-5 h-5 text-blue-600" />
+                                        <span className="font-semibold text-blue-800">Total Expenses</span>
+                                    </div>
+                                    <p className="text-2xl font-bold text-blue-600">${totalExpenses.toFixed(2)}</p>
+                                </div>
+                                <div className="bg-green-50 p-4 rounded-lg">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                        <Users className="w-5 h-5 text-green-600" />
+                                        <span className="font-semibold text-green-800">Per Person Share</span>
+                                    </div>
+                                    <p className="text-2xl font-bold text-green-600">${perPersonShare.toFixed(2)}</p>
+                                </div>
+                                <div className="bg-purple-50 p-4 rounded-lg">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                        <Calculator className="w-5 h-5 text-purple-600" />
+                                        <span className="font-semibold text-purple-800">Active Expenses</span>
+                                    </div>
+                                    <p className="text-2xl font-bold text-purple-600">
+                                        {people.reduce((total, person) => total + person.expenses.length, 0)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                            {people.map(person => (
+                                <PersonCard
+                                    key={person.id}
+                                    person={person}
+                                    onAddExpense={addExpense}
+                                    onRemoveExpense={removeExpense}
+                                    onUpdateName={updatePersonName}
+                                    balance={balances.find(b => b.id === person.id)?.balance || 0}
+                                />
+                            ))}
+                        </div>
+
+                        {showSettlements && (
+                            <div className="bg-white rounded-xl shadow-lg p-6">
+                                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+                                    <ArrowRight className="w-5 h-5 text-green-600" />
+                                    <span>Settlement Instructions</span>
+                                </h2>
+                                {settlements.length === 0 ? (
+                                    <p className="text-gray-600 text-center py-8">All expenses are perfectly balanced! No settlements needed.</p>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {settlements.map((settlement, index) => (
+                                            <div key={index} className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center space-x-3">
+                                                        <span className="font-semibold text-gray-800">{settlement.from}</span>
+                                                        <ArrowRight className="w-4 h-4 text-gray-600" />
+                                                        <span className="font-semibold text-gray-800">{settlement.to}</span>
+                                                    </div>
+                                                    <div className="bg-orange-500 text-white px-3 py-1 rounded-full font-semibold">
+                                                        ${settlement.amount.toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const PersonCard = ({ person, onAddExpense, onRemoveExpense, onUpdateName, balance }) => {
+            const [newExpense, setNewExpense] = useState({ description: '', amount: '' });
+            const [isEditing, setIsEditing] = useState(false);
+            const [tempName, setTempName] = useState(person.name);
+
+            const handleAddExpense = () => {
+                onAddExpense(person.id, newExpense.description, newExpense.amount);
+                setNewExpense({ description: '', amount: '' });
+            };
+
+            const handleNameSave = () => {
+                onUpdateName(person.id, tempName);
+                setIsEditing(false);
+            };
+
+            const totalPaid = person.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+            return (
+                <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow">
+                    <div className="flex items-center justify-between mb-3">
+                        {isEditing ? (
+                            <div className="flex space-x-2 flex-1">
+                                <input
+                                    type="text"
+                                    value={tempName}
+                                    onChange={(e) => setTempName(e.target.value)}
+                                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
+                                />
+                                <button
+                                    onClick={handleNameSave}
+                                    className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        ) : (
+                            <h3 
+                                className="font-semibold text-gray-800 cursor-pointer hover:text-blue-600"
+                                onClick={() => setIsEditing(true)}
+                            >
+                                {person.name}
+                            </h3>
+                        )}
+                        <div className={`text-sm font-semibold px-2 py-1 rounded ${
+                            balance > 0.01 ? 'bg-green-100 text-green-800' : 
+                            balance < -0.01 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                            {balance > 0.01 ? `+$${balance.toFixed(2)}` : 
+                             balance < -0.01 ? `-$${Math.abs(balance).toFixed(2)}` : 'Even'}
+                        </div>
+                    </div>
+
+                    <div className="mb-3">
+                        <p className="text-sm text-gray-600">Total Paid: <span className="font-semibold">${totalPaid.toFixed(2)}</span></p>
+                    </div>
+
+                    <div className="space-y-2 mb-3 max-h-32 overflow-y-auto">
+                        {person.expenses.map(expense => (
+                            <div key={expense.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-800 truncate">{expense.description}</p>
+                                    <p className="text-xs text-gray-600">${expense.amount.toFixed(2)}</p>
+                                </div>
+                                <button
+                                    onClick={() => onRemoveExpense(person.id, expense.id)}
+                                    className="text-red-500 hover:text-red-700 ml-2"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="space-y-2">
+                        <input
+                            type="text"
+                            placeholder="Expense description"
+                            value={newExpense.description}
+                            onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="flex space-x-2">
+                            <input
+                                type="number"
+                                placeholder="Amount"
+                                value={newExpense.amount}
+                                onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                step="0.01"
+                            />
+                            <button
+                                onClick={handleAddExpense}
+                                disabled={!newExpense.description.trim() || !newExpense.amount || parseFloat(newExpense.amount) <= 0}
+                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-3 py-2 rounded-md transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<ExpenseSplitterApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
