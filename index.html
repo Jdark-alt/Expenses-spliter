@@ -3,543 +3,697 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Trip Expense Splitter</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Trip Expense Calculator</title>
     <style>
-        body { 
-            margin: 0; 
-            padding: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        .icon { display: inline-block; width: 1em; height: 1em; stroke-width: 0; stroke: currentColor; fill: currentColor; }
-        
-        /* Custom scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* Button animations */
-        .btn-animate {
-            transform: scale(1);
-            transition: all 0.2s ease;
-        }
-        .btn-animate:active {
-            transform: scale(0.95);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        /* Mobile-first responsive design */
-        @media (max-width: 640px) {
-            .mobile-padding {
-                padding: 12px;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #4facfe;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+
+        .people-list, .expenses-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .people-list li, .expenses-list li {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+        }
+
+        .calculations {
+            background: #e8f5e8;
+            border-left-color: #28a745;
+        }
+
+        .settlement {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .settlement-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .sessions {
+            background: #f0f0f0;
+            border-left-color: #6c757d;
+        }
+
+        .session-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
             }
-            .mobile-text {
-                font-size: 14px;
+            
+            .header {
+                padding: 20px;
             }
-            .mobile-button {
-                padding: 8px 12px;
-                font-size: 14px;
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
             }
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Trip Expense Calculator</h1>
+            <p>Split expenses fairly among friends</p>
+        </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+        <div class="content">
+            <div id="error-message" class="error" style="display: none;"></div>
+            <div id="success-message" class="success" style="display: none;"></div>
 
-        // Icon components
-        const Users = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-        );
+            <!-- Session Management -->
+            <div class="section sessions">
+                <h2>🔄 Session Management</h2>
+                <div class="form-group">
+                    <label for="sessionName">Session Name:</label>
+                    <input type="text" id="sessionName" placeholder="Enter session name (e.g., 'Beach Trip 2024')">
+                </div>
+                <button onclick="createSession()">Create New Session</button>
+                <button onclick="loadSessions()" class="btn-secondary">Load Existing Sessions</button>
+                
+                <div id="sessions-list" style="margin-top: 20px;"></div>
+                <div id="current-session" style="margin-top: 15px; font-weight: bold; color: #333;"></div>
+            </div>
 
-        const UserPlus = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="8.5" cy="7" r="4"/>
-                <line x1="20" y1="8" x2="20" y2="14"/>
-                <line x1="23" y1="11" x2="17" y2="11"/>
-            </svg>
-        );
+            <!-- People Management -->
+            <div class="section" id="people-section" style="display: none;">
+                <h2>👥 Add People</h2>
+                <div class="form-group">
+                    <label for="personName">Person Name:</label>
+                    <input type="text" id="personName" placeholder="Enter person's name">
+                </div>
+                <button onclick="addPerson()">Add Person</button>
+                
+                <ul id="people-list" class="people-list"></ul>
+            </div>
 
-        const UserMinus = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="8.5" cy="7" r="4"/>
-                <line x1="23" y1="11" x2="17" y2="11"/>
-            </svg>
-        );
+            <!-- Expense Management -->
+            <div class="section" id="expenses-section" style="display: none;">
+                <h2>💳 Add Expenses</h2>
+                <div class="form-group">
+                    <label for="expenseDescription">Description:</label>
+                    <input type="text" id="expenseDescription" placeholder="What was the expense for?">
+                </div>
+                <div class="form-group">
+                    <label for="expenseAmount">Amount:</label>
+                    <input type="number" id="expenseAmount" placeholder="Enter amount" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="expensePayer">Paid by:</label>
+                    <select id="expensePayer"></select>
+                </div>
+                <button onclick="addExpense()">Add Expense</button>
+                
+                <ul id="expenses-list" class="expenses-list"></ul>
+            </div>
 
-        const IndianRupee = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 3h12"/>
-                <path d="M6 8h12"/>
-                <path d="M6 13h4"/>
-                <path d="M12 13C14.21 13 16 11.21 16 9C16 6.79 14.21 5 12 5H6"/>
-                <path d="M12 13l6 8"/>
-            </svg>
-        );
+            <!-- Calculations -->
+            <div class="section calculations" id="calculations-section" style="display: none;">
+                <h2>📊 Calculations</h2>
+                <div id="calculations-content"></div>
+                <button onclick="calculateSettlement()">Calculate Who Owes Whom</button>
+            </div>
 
-        const Calculator = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="4" y="2" width="16" height="20" rx="2"/>
-                <line x1="8" y1="6" x2="16" y2="6"/>
-                <line x1="8" y1="10" x2="16" y2="10"/>
-                <line x1="8" y1="14" x2="16" y2="14"/>
-                <line x1="8" y1="18" x2="16" y2="18"/>
-            </svg>
-        );
+            <!-- Settlement -->
+            <div class="section settlement" id="settlement-section" style="display: none;">
+                <h2>💸 Settlement</h2>
+                <div id="settlement-content"></div>
+                <button onclick="clearSession()" class="btn-danger">Clear Current Session</button>
+            </div>
+        </div>
+    </div>
 
-        const RotateCcw = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="1 4 1 10 7 10"/>
-                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-            </svg>
-        );
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, query } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOapGu5TOFvTWIF2OTj0MlIC6kQ0mBR8Y",
+            authDomain: "jdark-expense-spliter-database.firebaseapp.com",
+            projectId: "jdark-expense-spliter-database",
+            storageBucket: "jdark-expense-spliter-database.firebasestorage.app",
+            messagingSenderId: "528916900431",
+            appId: "1:528916900431:web:a1418ef94791a17549183a",
+            measurementId: "G-57E4B9MDYV"
+        };
 
-        const Plus = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-        );
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        const Trash2 = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="3,6 5,6 21,6"/>
-                <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
-                <line x1="10" y1="11" x2="10" y2="17"/>
-                <line x1="14" y1="11" x2="14" y2="17"/>
-            </svg>
-        );
+        // Make Firebase functions available globally
+        window.firebaseApp = app;
+        window.db = db;
+        window.firestoreFunctions = {
+            collection,
+            addDoc,
+            getDocs,
+            doc,
+            getDoc,
+            updateDoc,
+            deleteDoc,
+            serverTimestamp,
+            orderBy,
+            query
+        };
+    </script>
 
-        const ArrowRight = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12,5 19,12 12,19"/>
-            </svg>
-        );
+    <script>
 
-        const X = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-        );
+        // Global variables
+        let currentSession = null;
+        let people = [];
+        let expenses = [];
 
-        const ExpenseSplitterApp = () => {
-            const [people, setPeople] = useState([
-                { id: 1, name: 'Person 1', expenses: [] },
-                { id: 2, name: 'Person 2', expenses: [] }
-            ]);
-            const [nextId, setNextId] = useState(3);
-            const [settlements, setSettlements] = useState([]);
-            const [showSettlements, setShowSettlements] = useState(false);
+        // Session Management
+        async function createSession() {
+            const sessionName = document.getElementById('sessionName').value.trim();
+            if (!sessionName) {
+                showError('Please enter a session name');
+                return;
+            }
 
-            const addPerson = () => {
-                const newPerson = {
-                    id: nextId,
-                    name: `Person ${nextId}`,
+            try {
+                const sessionData = {
+                    name: sessionName,
+                    createdAt: window.firestoreFunctions.serverTimestamp(),
+                    people: [],
                     expenses: []
                 };
-                setPeople(prev => [...prev, newPerson]);
-                setNextId(prev => prev + 1);
-            };
 
-            const removePerson = (personId) => {
-                if (people.length <= 2) {
-                    alert('You need at least 2 people to split expenses!');
+                const docRef = await window.firestoreFunctions.addDoc(
+                    window.firestoreFunctions.collection(window.db, 'sessions'), 
+                    sessionData
+                );
+                currentSession = docRef.id;
+                people = [];
+                expenses = [];
+
+                document.getElementById('sessionName').value = '';
+                showSuccess(`Session "${sessionName}" created successfully!`);
+                showCurrentSession(sessionName);
+                showSections();
+                updateUI();
+            } catch (error) {
+                showError('Error creating session: ' + error.message);
+            }
+        }
+
+        async function loadSessions() {
+            try {
+                const q = window.firestoreFunctions.query(
+                    window.firestoreFunctions.collection(window.db, 'sessions'),
+                    window.firestoreFunctions.orderBy('createdAt', 'desc')
+                );
+                const snapshot = await window.firestoreFunctions.getDocs(q);
+                const sessionsList = document.getElementById('sessions-list');
+                sessionsList.innerHTML = '';
+
+                if (snapshot.empty) {
+                    sessionsList.innerHTML = '<p>No sessions found. Create a new session to get started.</p>';
                     return;
                 }
+
+                snapshot.forEach(doc => {
+                    const session = doc.data();
+                    const sessionDiv = document.createElement('div');
+                    sessionDiv.className = 'session-item';
+                    sessionDiv.innerHTML = `
+                        <span>${session.name}</span>
+                        <button onclick="loadSession('${doc.id}', '${session.name}')" class="btn-secondary" style="width: auto; margin: 0;">Load</button>
+                    `;
+                    sessionsList.appendChild(sessionDiv);
+                });
+            } catch (error) {
+                showError('Error loading sessions: ' + error.message);
+            }
+        }
+
+        async function loadSession(sessionId, sessionName) {
+            try {
+                const docRef = window.firestoreFunctions.doc(window.db, 'sessions', sessionId);
+                const docSnap = await window.firestoreFunctions.getDoc(docRef);
                 
-                const personToRemove = people.find(p => p.id === personId);
-                if (personToRemove && personToRemove.expenses.length > 0) {
-                    if (!window.confirm(`${personToRemove.name} has expenses. Are you sure you want to remove them?`)) {
-                        return;
-                    }
+                if (!docSnap.exists()) {
+                    showError('Session not found');
+                    return;
                 }
-                
-                setPeople(prev => prev.filter(person => person.id !== personId));
-                setShowSettlements(false);
+
+                const sessionData = docSnap.data();
+                currentSession = sessionId;
+                people = sessionData.people || [];
+                expenses = sessionData.expenses || [];
+
+                showCurrentSession(sessionName);
+                showSections();
+                updateUI();
+                showSuccess(`Session "${sessionName}" loaded successfully!`);
+            } catch (error) {
+                showError('Error loading session: ' + error.message);
+            }
+        }
+
+        function showCurrentSession(sessionName) {
+            document.getElementById('current-session').innerHTML = `📁 Current Session: ${sessionName}`;
+        }
+
+        function showSections() {
+            document.getElementById('people-section').style.display = 'block';
+            document.getElementById('expenses-section').style.display = 'block';
+            document.getElementById('calculations-section').style.display = 'block';
+        }
+
+        // People Management
+        async function addPerson() {
+            const personName = document.getElementById('personName').value.trim();
+            if (!personName) {
+                showError('Please enter a person name');
+                return;
+            }
+
+            if (people.includes(personName)) {
+                showError('Person already exists');
+                return;
+            }
+
+            people.push(personName);
+            document.getElementById('personName').value = '';
+            await saveSession();
+            updateUI();
+            showSuccess(`${personName} added successfully!`);
+        }
+
+        function removePerson(personName) {
+            people = people.filter(p => p !== personName);
+            expenses = expenses.filter(e => e.payer !== personName);
+            saveSession();
+            updateUI();
+            showSuccess(`${personName} removed successfully!`);
+        }
+
+        // Expense Management
+        async function addExpense() {
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const payer = document.getElementById('expensePayer').value;
+
+            if (!description || !amount || !payer) {
+                showError('Please fill in all expense fields');
+                return;
+            }
+
+            if (amount <= 0) {
+                showError('Amount must be greater than 0');
+                return;
+            }
+
+            const expense = {
+                id: Date.now(),
+                description,
+                amount,
+                payer
             };
 
-            const addExpense = (personId, description, amount) => {
-                if (!description.trim() || !amount || amount <= 0) return;
-                
-                setPeople(prevPeople => 
-                    prevPeople.map(person => 
-                        person.id === personId 
-                            ? { 
-                                ...person, 
-                                expenses: [...person.expenses, { 
-                                    id: Date.now(), 
-                                    description: description.trim(), 
-                                    amount: parseFloat(amount) 
-                                }] 
-                            }
-                            : person
-                    )
-                );
-            };
+            expenses.push(expense);
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            await saveSession();
+            updateUI();
+            showSuccess('Expense added successfully!');
+        }
 
-            const removeExpense = (personId, expenseId) => {
-                setPeople(prevPeople => 
-                    prevPeople.map(person => 
-                        person.id === personId 
-                            ? { 
-                                ...person, 
-                                expenses: person.expenses.filter(expense => expense.id !== expenseId) 
-                            }
-                            : person
-                    )
-                );
-            };
+        function removeExpense(expenseId) {
+            expenses = expenses.filter(e => e.id !== expenseId);
+            saveSession();
+            updateUI();
+            showSuccess('Expense removed successfully!');
+        }
 
-            const updatePersonName = (personId, newName) => {
-                setPeople(prevPeople => 
-                    prevPeople.map(person => 
-                        person.id === personId ? { ...person, name: newName.trim() || `Person ${personId}` } : person
-                    )
-                );
-            };
+        // Calculations
+        function calculateSettlement() {
+            if (people.length === 0 || expenses.length === 0) {
+                showError('Please add people and expenses first');
+                return;
+            }
 
-            const calculateTotalExpenses = () => {
-                return people.reduce((total, person) => {
-                    return total + person.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-                }, 0);
-            };
+            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const perPersonShare = totalExpenses / people.length;
 
-            const calculatePersonTotal = (person) => {
-                return person.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-            };
+            // Calculate how much each person paid and owes
+            const balances = {};
+            people.forEach(person => {
+                balances[person] = {
+                    paid: 0,
+                    owes: perPersonShare,
+                    balance: 0
+                };
+            });
 
-            const calculateSettlements = () => {
-                const totalExpenses = calculateTotalExpenses();
-                const perPersonShare = totalExpenses / people.length;
-                
-                const balances = people.map(person => ({
-                    ...person,
-                    totalPaid: calculatePersonTotal(person),
-                    balance: calculatePersonTotal(person) - perPersonShare
-                }));
+            expenses.forEach(expense => {
+                balances[expense.payer].paid += expense.amount;
+            });
 
-                const creditors = balances.filter(person => person.balance > 0.01).sort((a, b) => b.balance - a.balance);
-                const debtors = balances.filter(person => person.balance < -0.01).sort((a, b) => a.balance - b.balance);
-                
-                const settlements = [];
-                let i = 0, j = 0;
-                
-                while (i < creditors.length && j < debtors.length) {
-                    const creditor = creditors[i];
-                    const debtor = debtors[j];
-                    
-                    const amount = Math.min(creditor.balance, -debtor.balance);
-                    
-                    if (amount > 0.01) {
+            // Calculate net balance (positive = owed money, negative = owes money)
+            people.forEach(person => {
+                balances[person].balance = balances[person].paid - balances[person].owes;
+            });
+
+            // Calculate settlements
+            const settlements = [];
+            const creditors = people.filter(p => balances[p].balance > 0.01);
+            const debtors = people.filter(p => balances[p].balance < -0.01);
+
+            creditors.forEach(creditor => {
+                let creditorBalance = balances[creditor].balance;
+                debtors.forEach(debtor => {
+                    if (creditorBalance > 0.01 && balances[debtor].balance < -0.01) {
+                        const settlement = Math.min(creditorBalance, Math.abs(balances[debtor].balance));
                         settlements.push({
-                            from: debtor.name,
-                            to: creditor.name,
-                            amount: amount
+                            from: debtor,
+                            to: creditor,
+                            amount: settlement
                         });
-                        
-                        creditor.balance -= amount;
-                        debtor.balance += amount;
+                        creditorBalance -= settlement;
+                        balances[debtor].balance += settlement;
                     }
-                    
-                    if (creditor.balance < 0.01) i++;
-                    if (debtor.balance > -0.01) j++;
-                }
-                
-                return { settlements, perPersonShare, totalExpenses, balances };
-            };
+                });
+            });
 
-            const handleCalculate = () => {
-                const result = calculateSettlements();
-                setSettlements(result.settlements);
-                setShowSettlements(true);
-            };
+            displayCalculations(totalExpenses, perPersonShare, balances);
+            displaySettlement(settlements);
+        }
 
-            const resetAll = () => {
-                if (window.confirm('Are you sure you want to reset all expenses? This cannot be undone.')) {
-                    setPeople([
-                        { id: 1, name: 'Person 1', expenses: [] },
-                        { id: 2, name: 'Person 2', expenses: [] }
-                    ]);
-                    setNextId(3);
-                    setSettlements([]);
-                    setShowSettlements(false);
-                }
-            };
-
-            const { perPersonShare, totalExpenses, balances } = calculateSettlements();
-
-            return (
-                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 mobile-padding p-2 sm:p-4">
-                    <div className="max-w-7xl mx-auto">
-                        {/* Header Section */}
-                        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
-                                <div className="flex items-center space-x-3 mb-4 sm:mb-0">
-                                    <div className="bg-blue-500 p-2 sm:p-3 rounded-full">
-                                        <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Group Trip Expense Splitter</h1>
-                                        <p className="text-sm sm:text-base text-gray-600">Manage and split expenses fairly among {people.length} people</p>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                                    <button
-                                        onClick={addPerson}
-                                        className="btn-animate bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 sm:py-2 rounded-xl sm:rounded-lg flex items-center justify-center space-x-2 transition-all duration-200 shadow-md hover:shadow-lg mobile-button"
-                                    >
-                                        <UserPlus className="w-4 h-4" />
-                                        <span className="font-semibold">Add Person</span>
-                                    </button>
-                                    <button
-                                        onClick={handleCalculate}
-                                        className="btn-animate bg-green-500 hover:bg-green-600 text-white px-4 py-3 sm:py-2 rounded-xl sm:rounded-lg flex items-center justify-center space-x-2 transition-all duration-200 shadow-md hover:shadow-lg mobile-button"
-                                    >
-                                        <Calculator className="w-4 h-4" />
-                                        <span className="font-semibold">Calculate Split</span>
-                                    </button>
-                                    <button
-                                        onClick={resetAll}
-                                        className="btn-animate bg-red-500 hover:bg-red-600 text-white px-4 py-3 sm:py-2 rounded-xl sm:rounded-lg flex items-center justify-center space-x-2 transition-all duration-200 shadow-md hover:shadow-lg mobile-button"
-                                    >
-                                        <RotateCcw className="w-4 h-4" />
-                                        <span className="font-semibold">Reset All</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Stats Cards */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                        <Users className="w-5 h-5 text-blue-600" />
-                                        <span className="font-semibold text-blue-800 text-sm sm:text-base">Total People</span>
-                                    </div>
-                                    <p className="text-2xl sm:text-3xl font-bold text-blue-600">{people.length}</p>
-                                </div>
-                                <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                        <IndianRupee className="w-5 h-5 text-indigo-600" />
-                                        <span className="font-semibold text-indigo-800 text-sm sm:text-base">Total Expenses</span>
-                                    </div>
-                                    <p className="text-2xl sm:text-3xl font-bold text-indigo-600">₹{totalExpenses.toFixed(2)}</p>
-                                </div>
-                                <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                        <Calculator className="w-5 h-5 text-green-600" />
-                                        <span className="font-semibold text-green-800 text-sm sm:text-base">Per Person Share</span>
-                                    </div>
-                                    <p className="text-2xl sm:text-3xl font-bold text-green-600">₹{perPersonShare.toFixed(2)}</p>
-                                </div>
-                                <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                        <Plus className="w-5 h-5 text-purple-600" />
-                                        <span className="font-semibold text-purple-800 text-sm sm:text-base">Active Expenses</span>
-                                    </div>
-                                    <p className="text-2xl sm:text-3xl font-bold text-purple-600">
-                                        {people.reduce((total, person) => total + person.expenses.length, 0)}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* People Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                            {people.map(person => (
-                                <PersonCard
-                                    key={person.id}
-                                    person={person}
-                                    onAddExpense={addExpense}
-                                    onRemoveExpense={removeExpense}
-                                    onUpdateName={updatePersonName}
-                                    onRemovePerson={removePerson}
-                                    balance={balances.find(b => b.id === person.id)?.balance || 0}
-                                    canRemove={people.length > 2}
-                                />
-                            ))}
-                        </div>
-
-                        {/* Settlements Section */}
-                        {showSettlements && (
-                            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                                    <ArrowRight className="w-5 h-5 text-green-600" />
-                                    <span>Settlement Instructions</span>
-                                </h2>
-                                {settlements.length === 0 ? (
-                                    <div className="text-center py-8">
-                                        <div className="bg-green-100 rounded-full p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                            <Users className="w-8 h-8 text-green-600" />
-                                        </div>
-                                        <p className="text-gray-600 text-lg font-medium">All expenses are perfectly balanced!</p>
-                                        <p className="text-gray-500 text-sm mt-1">No settlements needed.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {settlements.map((settlement, index) => (
-                                            <div key={index} className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm">
-                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                                                    <div className="flex items-center space-x-3">
-                                                        <span className="font-semibold text-gray-800 text-sm sm:text-base">{settlement.from}</span>
-                                                        <ArrowRight className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                        <span className="font-semibold text-gray-800 text-sm sm:text-base">{settlement.to}</span>
-                                                    </div>
-                                                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full font-bold text-sm sm:text-base shadow-md">
-                                                        ₹{settlement.amount.toFixed(2)}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
+        function displayCalculations(total, perPerson, balances) {
+            const content = document.getElementById('calculations-content');
+            content.innerHTML = `
+                <div class="settlement-item">
+                    <strong>Total Expenses: $${total.toFixed(2)}</strong>
                 </div>
-            );
-        };
-
-        const PersonCard = ({ person, onAddExpense, onRemoveExpense, onUpdateName, onRemovePerson, balance, canRemove }) => {
-            const [newExpense, setNewExpense] = useState({ description: '', amount: '' });
-            const [isEditing, setIsEditing] = useState(false);
-            const [tempName, setTempName] = useState(person.name);
-
-            const handleAddExpense = () => {
-                onAddExpense(person.id, newExpense.description, newExpense.amount);
-                setNewExpense({ description: '', amount: '' });
-            };
-
-            const handleNameSave = () => {
-                onUpdateName(person.id, tempName);
-                setIsEditing(false);
-            };
-
-            const totalPaid = person.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-
-            return (
-                <div className="bg-white rounded-xl shadow-md p-4 border border-gray-200 hover:shadow-lg transition-all duration-200 transform hover:scale-105 relative">
-                    {/* Remove person button */}
-                    {canRemove && (
-                        <button
-                            onClick={() => onRemovePerson(person.id)}
-                            className="absolute top-2 right-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded-full transition-all duration-200"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    )}
-                    
-                    <div className="flex items-center justify-between mb-3 pr-6">
-                        {isEditing ? (
-                            <div className="flex space-x-2 flex-1">
-                                <input
-                                    type="text"
-                                    value={tempName}
-                                    onChange={(e) => setTempName(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
-                                />
-                                <button
-                                    onClick={handleNameSave}
-                                    className="btn-animate bg-blue-500 text-white px-3 py-2 rounded-lg text-xs hover:bg-blue-600 transition-colors"
-                                >
-                                    Save
-                                </button>
-                            </div>
-                        ) : (
-                            <h3 
-                                className="font-semibold text-gray-800 cursor-pointer hover:text-blue-600 transition-colors text-sm sm:text-base"
-                                onClick={() => setIsEditing(true)}
-                            >
-                                {person.name}
-                            </h3>
-                        )}
-                        <div className={`text-xs sm:text-sm font-bold px-3 py-1 rounded-full ${
-                            balance > 0.01 ? 'bg-green-100 text-green-800' : 
-                            balance < -0.01 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                            {balance > 0.01 ? `+₹${balance.toFixed(2)}` : 
-                             balance < -0.01 ? `-₹${Math.abs(balance).toFixed(2)}` : 'Even'}
-                        </div>
-                    </div>
-
-                    <div className="mb-3">
-                        <p className="text-sm text-gray-600">Total Paid: <span className="font-semibold text-gray-800">₹{totalPaid.toFixed(2)}</span></p>
-                    </div>
-
-                    <div className="space-y-2 mb-4 max-h-32 overflow-y-auto custom-scrollbar">
-                        {person.expenses.map(expense => (
-                            <div key={expense.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-800 truncate">{expense.description}</p>
-                                    <p className="text-xs text-gray-600 font-semibold">₹{expense.amount.toFixed(2)}</p>
-                                </div>
-                                <button
-                                    onClick={() => onRemoveExpense(person.id, expense.id)}
-                                    className="btn-animate text-red-500 hover:text-red-700 ml-2 p-1 rounded-full hover:bg-red-50 transition-all"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="space-y-3">
-                        <input
-                            type="text"
-                            placeholder="Expense description"
-                            value={newExpense.description}
-                            onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                            className="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        <div className="flex space-x-2">
-                            <input
-                                type="number"
-                                placeholder="Amount (₹)"
-                                value={newExpense.amount}
-                                onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                                className="flex-1 px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                step="0.01"
-                            />
-                            <button
-                                onClick={handleAddExpense}
-                                disabled={!newExpense.description.trim() || !newExpense.amount || parseFloat(newExpense.amount) <= 0}
-                                className="btn-animate bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                            >
-                                <Plus className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
+                <div class="settlement-item">
+                    <strong>Per Person Share: $${perPerson.toFixed(2)}</strong>
                 </div>
-            );
-        };
+                <div style="margin-top: 20px;">
+                    <h3>Individual Balances:</h3>
+                    ${people.map(person => `
+                        <div class="settlement-item">
+                            <strong>${person}</strong><br>
+                            Paid: $${balances[person].paid.toFixed(2)} | 
+                            Owes: $${balances[person].owes.toFixed(2)} | 
+                            Balance: $${balances[person].balance.toFixed(2)}
+                            ${balances[person].balance > 0 ? ' (owed money)' : balances[person].balance < 0 ? ' (owes money)' : ' (even)'}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
 
-        ReactDOM.render(<ExpenseSplitterApp />, document.getElementById('root'));
+        function displaySettlement(settlements) {
+            const content = document.getElementById('settlement-content');
+            document.getElementById('settlement-section').style.display = 'block';
+
+            if (settlements.length === 0) {
+                content.innerHTML = '<div class="settlement-item">🎉 Everyone is settled up! No payments needed.</div>';
+                return;
+            }
+
+            content.innerHTML = `
+                <div class="settlement-item">
+                    <strong>💸 Required Payments:</strong>
+                </div>
+                ${settlements.map(settlement => `
+                    <div class="settlement-item">
+                        <strong>${settlement.from}</strong> owes <strong>${settlement.to}</strong> 
+                        <span style="color: #28a745; font-size: 1.2em;">$${settlement.amount.toFixed(2)}</span>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        // UI Updates
+        function updateUI() {
+            updatePeopleList();
+            updateExpensesList();
+            updateExpensePayers();
+        }
+
+        function updatePeopleList() {
+            const list = document.getElementById('people-list');
+            list.innerHTML = people.map(person => `
+                <li>
+                    <span>${person}</span>
+                    <button class="remove-btn" onclick="removePerson('${person}')">Remove</button>
+                </li>
+            `).join('');
+        }
+
+        function updateExpensesList() {
+            const list = document.getElementById('expenses-list');
+            list.innerHTML = expenses.map(expense => `
+                <li>
+                    <div>
+                        <strong>${expense.description}</strong><br>
+                        $${expense.amount.toFixed(2)} paid by ${expense.payer}
+                    </div>
+                    <button class="remove-btn" onclick="removeExpense(${expense.id})">Remove</button>
+                </li>
+            `).join('');
+        }
+
+        function updateExpensePayers() {
+            const select = document.getElementById('expensePayer');
+            select.innerHTML = '<option value="">Select who paid</option>' + 
+                people.map(person => `<option value="${person}">${person}</option>`).join('');
+        }
+
+        // Firebase operations
+        async function saveSession() {
+            if (!currentSession) return;
+
+            try {
+                const docRef = window.firestoreFunctions.doc(window.db, 'sessions', currentSession);
+                await window.firestoreFunctions.updateDoc(docRef, {
+                    people,
+                    expenses,
+                    updatedAt: window.firestoreFunctions.serverTimestamp()
+                });
+            } catch (error) {
+                showError('Error saving session: ' + error.message);
+            }
+        }
+
+        async function clearSession() {
+            if (!currentSession) return;
+
+            if (confirm('Are you sure you want to clear this session? This action cannot be undone.')) {
+                try {
+                    const docRef = window.firestoreFunctions.doc(window.db, 'sessions', currentSession);
+                    await window.firestoreFunctions.deleteDoc(docRef);
+                    currentSession = null;
+                    people = [];
+                    expenses = [];
+                    
+                    document.getElementById('current-session').innerHTML = '';
+                    document.getElementById('people-section').style.display = 'none';
+                    document.getElementById('expenses-section').style.display = 'none';
+                    document.getElementById('calculations-section').style.display = 'none';
+                    document.getElementById('settlement-section').style.display = 'none';
+                    
+                    showSuccess('Session cleared successfully!');
+                    loadSessions();
+                } catch (error) {
+                    showError('Error clearing session: ' + error.message);
+                }
+            }
+        }
+
+        // Utility functions
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize
+        window.onload = function() {
+            loadSessions();
+        };
     </script>
 </body>
 </html>
